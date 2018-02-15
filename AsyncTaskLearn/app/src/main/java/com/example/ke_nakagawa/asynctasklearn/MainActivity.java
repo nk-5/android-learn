@@ -1,17 +1,54 @@
 package com.example.ke_nakagawa.asynctasklearn;
 
 import android.os.AsyncTask;
+import android.os.Handler;
+import android.os.HandlerThread;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
 
+import static java.lang.Thread.sleep;
+
 public class MainActivity extends AppCompatActivity {
+
+    HandlerThread handlerThread;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-        runMultipleAsyncTask(); // Start Async Task
+        for (int i=0; i < 5; i++) {
+            runThreadHandler();
+        }
+//        runThreadHandler();
+//        runMultipleAsyncTask(); // Start Async Task
+    }
+
+    private void runThreadHandler() {
+        if (handlerThread == null) {
+            handlerThread = new HandlerThread("KeigoThread");
+            handlerThread.start();
+        }
+
+        Handler handler = new Handler(handlerThread.getLooper());
+
+        // postDelayedだと直列実行が担保されない
+//        handler.postDelayed(new Runnable() {
+//            @Override
+//            public void run() {
+//                System.out.println("keigo is cool");
+//                System.out.println(Thread.currentThread().getName());
+//            }
+//        }, 2000);
+
+        // postだと直列が担保される
+        handler.post(new Runnable() {
+            @Override
+            public void run() {
+                System.out.println("keigo is cool");
+                System.out.println(Thread.currentThread().getName());
+            }
+        });
     }
 
     private void runMultipleAsyncTask() // Run Multiple Async Task
@@ -54,7 +91,7 @@ public class MainActivity extends AppCompatActivity {
                 Log.i("AsyncTask" ,"FirstAsyncTask");
                 try
                 {
-                    Thread.sleep(100);
+                    sleep(100);
                 }
                 catch (InterruptedException exception)
                 {
@@ -85,7 +122,7 @@ public class MainActivity extends AppCompatActivity {
                 Log.d("AsyncTask" ,"SecondAsyncTask");
                 try
                 {
-                    Thread.sleep(100);
+                    sleep(100);
                 }
                 catch (InterruptedException exception)
                 {
