@@ -25,7 +25,8 @@ public class MainActivity extends AppCompatActivity {
 //        runMultipleAsyncTask(); // Start Async Task
 
 //        incrementAtomicInteger();
-        incrementAtomicIntegerAndSyncronized();
+        incrementIntegerAndSyncronized();
+//        incrementAtomicIntegerAndSyncronized();
     }
 
     private void incrementAtomicInteger() {
@@ -61,6 +62,43 @@ public class MainActivity extends AppCompatActivity {
         I/AsyncTask: AtomicInteger = 20
         D/AsyncTask: IncrementAtomicIntPostExecute()
         D/AsyncTask: IncrementAtomicIntPostExecute2()
+         */
+    }
+
+    private void incrementIntegerAndSyncronized() {
+        SyncronizedIncrementAsyncTask task = new SyncronizedIncrementAsyncTask();
+        SyncronizedIncrementAsyncTask2 task2 = new SyncronizedIncrementAsyncTask2();
+        Integer intNum = 0;
+        task.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, intNum);
+        task2.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, intNum);
+
+
+        // result
+        /*
+        I/AsyncTask: SyncronizedIncrementOnPreExecute()
+        I/AsyncTask: SyncronizedIncrementOnPreExecute2()
+        I/AsyncTask: SyncronizedAtomicInteger = 1
+        I/AsyncTask: SyncronizedAtomicInteger = 2
+        I/AsyncTask: SyncronizedAtomicInteger = 3
+        I/AsyncTask: SyncronizedAtomicInteger = 4
+        I/AsyncTask: SyncronizedAtomicInteger = 5
+        I/AsyncTask: SyncronizedAtomicInteger = 6
+        I/AsyncTask: SyncronizedAtomicInteger = 7
+        I/AsyncTask: SyncronizedAtomicInteger = 8
+        I/AsyncTask: SyncronizedAtomicInteger = 9
+        I/AsyncTask: SyncronizedAtomicInteger = 10
+        I/AsyncTask: SyncronizedAtomicInteger = 1
+        I/AsyncTask: SyncronizedAtomicInteger = 2
+        I/AsyncTask: SyncronizedAtomicInteger = 3
+        I/AsyncTask: SyncronizedAtomicInteger = 4
+        I/AsyncTask: SyncronizedAtomicInteger = 5
+        I/AsyncTask: SyncronizedAtomicInteger = 6
+        I/AsyncTask: SyncronizedAtomicInteger = 7
+        I/AsyncTask: SyncronizedAtomicInteger = 8
+        I/AsyncTask: SyncronizedAtomicInteger = 9
+        I/AsyncTask: SyncronizedAtomicInteger = 10
+        D/AsyncTask: SyncronizedIncrementPostExecute2()
+        D/AsyncTask: SyncronizedIncrementPostExecute()
          */
     }
 
@@ -262,6 +300,50 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
+    /***************************************************************************/
+
+    private class SyncronizedIncrementAsyncTask extends AsyncTask<Integer, Void, Void>
+    {
+        @Override
+        protected void onPreExecute()
+        {
+            Log.i("AsyncTask" ,"SyncronizedIncrementOnPreExecute()");
+        }
+        @Override
+        protected Void doInBackground(Integer... params)
+        {
+            increment(params[0]);
+            return null;
+        }
+        @Override
+        protected void onPostExecute(Void result)
+        {
+            Log.d("AsyncTask" ,"SyncronizedIncrementPostExecute()");
+        }
+    }
+
+    private class SyncronizedIncrementAsyncTask2 extends AsyncTask<Integer, Void, Void>
+    {
+        @Override
+        protected void onPreExecute()
+        {
+            Log.i("AsyncTask" ,"SyncronizedIncrementOnPreExecute2()");
+        }
+        @Override
+        protected Void doInBackground(Integer... params)
+        {
+            increment(params[0]);
+            return null;
+        }
+        @Override
+        protected void onPostExecute(Void result)
+        {
+            Log.d("AsyncTask" ,"SyncronizedIncrementPostExecute2()");
+        }
+    }
+
+    /***************************************************************************/
+
     private class SyncronizedIncrementAtomicAsyncTask extends AsyncTask<AtomicInteger, Void, Void>
     {
         @Override
@@ -272,7 +354,7 @@ public class MainActivity extends AppCompatActivity {
         @Override
         protected Void doInBackground(AtomicInteger... params)
         {
-            increment(params[0]);
+            incrementAtomic(params[0]);
             return null;
         }
         @Override
@@ -292,7 +374,7 @@ public class MainActivity extends AppCompatActivity {
         @Override
         protected Void doInBackground(AtomicInteger... params)
         {
-            increment(params[0]);
+            incrementAtomic(params[0]);
             return null;
         }
         @Override
@@ -302,7 +384,15 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
-    synchronized void increment(AtomicInteger num) {
+    synchronized void increment(int num) {
+        for(int index = 0; index < 10; index++)
+        {
+            num++;
+            Log.i("AsyncTask" , "SyncronizedAtomicInteger = " + String.valueOf(num));
+        }
+    }
+
+    synchronized void incrementAtomic(AtomicInteger num) {
         for(int index = 0; index < 10; index++)
         {
             num.getAndIncrement();
