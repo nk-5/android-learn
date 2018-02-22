@@ -3,11 +3,14 @@ package com.example.ke_nakagawa.asynctasklearn;
 import android.os.AsyncTask;
 import android.os.Handler;
 import android.os.HandlerThread;
+import android.os.Looper;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
 
 import static java.lang.Thread.sleep;
+
+import java.util.concurrent.atomic.AtomicInteger;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -17,11 +20,84 @@ public class MainActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-        for (int i=0; i < 5; i++) {
-            runThreadHandler();
-        }
+
 //        runThreadHandler();
 //        runMultipleAsyncTask(); // Start Async Task
+
+//        incrementAtomicInteger();
+        incrementAtomicIntegerAndSyncronized();
+    }
+
+    private void incrementAtomicInteger() {
+        IncrementAtomicIntAsyncTask task = new IncrementAtomicIntAsyncTask();
+        IncrementAtomicIntAsyncTask2 task2 = new IncrementAtomicIntAsyncTask2();
+        AtomicInteger atomicInt = new AtomicInteger();
+        task.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, atomicInt);
+        task2.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, atomicInt);
+
+        // result
+        /*
+        I/AsyncTask: IncrementAtomicIntOnPreExecute()
+        I/AsyncTask: IncrementAtomicIntOnPreExecute2()
+        I/AsyncTask: AtomicInteger = 1
+        I/AsyncTask: AtomicInteger = 2
+        I/AsyncTask: AtomicInteger = 3
+        I/AsyncTask: AtomicInteger = 4
+        I/AsyncTask: AtomicInteger = 6
+        I/AsyncTask: AtomicInteger = 6
+        I/AsyncTask: AtomicInteger = 7
+        I/AsyncTask: AtomicInteger = 8
+        I/AsyncTask: AtomicInteger = 9
+        I/AsyncTask: AtomicInteger = 10
+        I/AsyncTask: AtomicInteger = 12
+        I/AsyncTask: AtomicInteger = 12
+        I/AsyncTask: AtomicInteger = 13
+        I/AsyncTask: AtomicInteger = 14
+        I/AsyncTask: AtomicInteger = 15
+        I/AsyncTask: AtomicInteger = 17
+        I/AsyncTask: AtomicInteger = 16
+        I/AsyncTask: AtomicInteger = 18
+        I/AsyncTask: AtomicInteger = 19
+        I/AsyncTask: AtomicInteger = 20
+        D/AsyncTask: IncrementAtomicIntPostExecute()
+        D/AsyncTask: IncrementAtomicIntPostExecute2()
+         */
+    }
+
+    private void incrementAtomicIntegerAndSyncronized() {
+        SyncronizedIncrementAtomicAsyncTask task = new SyncronizedIncrementAtomicAsyncTask();
+        SyncronizedIncrementAtomicAsyncTask2 task2 = new SyncronizedIncrementAtomicAsyncTask2();
+        AtomicInteger atomicInt = new AtomicInteger();
+        task.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, atomicInt);
+        task2.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, atomicInt);
+
+        // result
+        /*
+        I/AsyncTask: IncrementAtomicIntOnPreExecute()
+        I/AsyncTask: SyncronizedIncrementAtomicIntOnPreExecute2()
+        I/AsyncTask: SyncronizedAtomicInteger = 1
+        I/AsyncTask: SyncronizedAtomicInteger = 2
+        I/AsyncTask: SyncronizedAtomicInteger = 3
+        I/AsyncTask: SyncronizedAtomicInteger = 4
+        I/AsyncTask: SyncronizedAtomicInteger = 5
+        I/AsyncTask: SyncronizedAtomicInteger = 6
+        I/AsyncTask: SyncronizedAtomicInteger = 7
+        I/AsyncTask: SyncronizedAtomicInteger = 8
+        I/AsyncTask: SyncronizedAtomicInteger = 9
+        I/AsyncTask: SyncronizedAtomicInteger = 10
+        I/AsyncTask: SyncronizedAtomicInteger = 11
+        I/AsyncTask: SyncronizedAtomicInteger = 12
+        I/AsyncTask: SyncronizedAtomicInteger = 13
+        I/AsyncTask: SyncronizedAtomicInteger = 14
+        I/AsyncTask: SyncronizedAtomicInteger = 15
+        I/AsyncTask: SyncronizedAtomicInteger = 16
+        I/AsyncTask: SyncronizedAtomicInteger = 17
+        I/AsyncTask: SyncronizedAtomicInteger = 18
+        I/AsyncTask: SyncronizedAtomicInteger = 19
+        I/AsyncTask: SyncronizedAtomicInteger = 20
+        D/AsyncTask: SyncronizedIncrementAtomicIntPostExecute2()
+        D/AsyncTask: IncrementAtomicIntPostExecute()
+         */
     }
 
     private void runThreadHandler() {
@@ -55,13 +131,13 @@ public class MainActivity extends AppCompatActivity {
     {
         FirstAsyncTask asyncTask = new FirstAsyncTask(); // First
         asyncTask.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
-//        asyncTask.executeOnExecutor(AsyncTask.SERIAL_EXECUTOR);
-//        asyncTask.execute();
+        asyncTask.executeOnExecutor(AsyncTask.SERIAL_EXECUTOR);
+        asyncTask.execute();
 
         SecondAsyncTask asyncTask2 = new SecondAsyncTask(); // Second
         asyncTask2.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
-//        asyncTask2.executeOnExecutor(AsyncTask.SERIAL_EXECUTOR);
-//        asyncTask2.execute();
+        asyncTask2.executeOnExecutor(AsyncTask.SERIAL_EXECUTOR);
+        asyncTask2.execute();
 
 
         /**
@@ -135,6 +211,102 @@ public class MainActivity extends AppCompatActivity {
         protected void onPostExecute(Void result)
         {
             Log.d("AsyncTask" ,"SecondOnPostExecute()");
+        }
+    }
+
+    private class IncrementAtomicIntAsyncTask extends AsyncTask<AtomicInteger, Void, Void>
+    {
+        @Override
+        protected void onPreExecute()
+        {
+            Log.i("AsyncTask" ,"IncrementAtomicIntOnPreExecute()");
+        }
+        @Override
+        protected Void doInBackground(AtomicInteger... params)
+        {
+            for(int index = 0; index < 10; index++)
+            {
+                params[0].getAndIncrement();
+                Log.i("AsyncTask" , "AtomicInteger = " + String.valueOf(params[0].get()));
+            }
+            return null;
+        }
+        @Override
+        protected void onPostExecute(Void result)
+        {
+            Log.d("AsyncTask" ,"IncrementAtomicIntPostExecute()");
+        }
+    }
+
+    private class IncrementAtomicIntAsyncTask2 extends AsyncTask<AtomicInteger, Void, Void>
+    {
+        @Override
+        protected void onPreExecute()
+        {
+            Log.i("AsyncTask" ,"IncrementAtomicIntOnPreExecute2()");
+        }
+        @Override
+        protected Void doInBackground(AtomicInteger... params)
+        {
+            for(int index = 0; index < 10; index++)
+            {
+                params[0].getAndIncrement();
+                Log.i("AsyncTask" , "AtomicInteger = " + String.valueOf(params[0].get()));
+            }
+            return null;
+        }
+        @Override
+        protected void onPostExecute(Void result)
+        {
+            Log.d("AsyncTask" ,"IncrementAtomicIntPostExecute2()");
+        }
+    }
+
+    private class SyncronizedIncrementAtomicAsyncTask extends AsyncTask<AtomicInteger, Void, Void>
+    {
+        @Override
+        protected void onPreExecute()
+        {
+            Log.i("AsyncTask" ,"IncrementAtomicIntOnPreExecute()");
+        }
+        @Override
+        protected Void doInBackground(AtomicInteger... params)
+        {
+            increment(params[0]);
+            return null;
+        }
+        @Override
+        protected void onPostExecute(Void result)
+        {
+            Log.d("AsyncTask" ,"IncrementAtomicIntPostExecute()");
+        }
+    }
+
+    private class SyncronizedIncrementAtomicAsyncTask2 extends AsyncTask<AtomicInteger, Void, Void>
+    {
+        @Override
+        protected void onPreExecute()
+        {
+            Log.i("AsyncTask" ,"SyncronizedIncrementAtomicIntOnPreExecute2()");
+        }
+        @Override
+        protected Void doInBackground(AtomicInteger... params)
+        {
+            increment(params[0]);
+            return null;
+        }
+        @Override
+        protected void onPostExecute(Void result)
+        {
+            Log.d("AsyncTask" ,"SyncronizedIncrementAtomicIntPostExecute2()");
+        }
+    }
+
+    synchronized void increment(AtomicInteger num) {
+        for(int index = 0; index < 10; index++)
+        {
+            num.getAndIncrement();
+            Log.i("AsyncTask" , "SyncronizedAtomicInteger = " + String.valueOf(num.get()));
         }
     }
 }
