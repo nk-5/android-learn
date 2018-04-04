@@ -21,12 +21,49 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
+        crashAndExecuteAsyncTask();
+
 //        runThreadHandler();
 //        runMultipleAsyncTask(); // Start Async Task
 
 //        incrementAtomicInteger();
-        incrementIntegerAndSyncronized();
+//        incrementIntegerAndSyncronized();
 //        incrementAtomicIntegerAndSyncronized();
+    }
+
+    private void crashAndExecuteAsyncTask() {
+        try {
+            throw new NullPointerException();
+        } catch (Exception e) {
+            Log.i("NullPointerException" , e.toString());
+            CrashAndAsyncTask task = new CrashAndAsyncTask();
+//            task.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
+            task.execute();
+            throw e;
+        }
+    }
+
+    private class CrashAndAsyncTask extends AsyncTask<AtomicInteger, Void, Void>
+    {
+        @Override
+        protected void onPreExecute()
+        {
+            Log.i("AsyncTask" ,"crashTask");
+        }
+        @Override
+        protected Void doInBackground(AtomicInteger... params)
+        {
+            for(int index = 0; index < 10000; index++)
+            {
+                Log.i("AsyncTask" ,"test" + String.valueOf(index));
+            }
+            return null;
+        }
+        @Override
+        protected void onPostExecute(Void result)
+        {
+            Log.d("AsyncTask" ,"crashTask");
+        }
     }
 
     private void incrementAtomicInteger() {
