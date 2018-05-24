@@ -21,10 +21,10 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        crashAndExecuteAsyncTask();
+//        crashAndExecuteAsyncTask();
 
 //        runThreadHandler();
-//        runMultipleAsyncTask(); // Start Async Task
+        runMultipleAsyncTask(); // Start Async Task
 
 //        incrementAtomicInteger();
 //        incrementIntegerAndSyncronized();
@@ -204,15 +204,20 @@ public class MainActivity extends AppCompatActivity {
 
     private void runMultipleAsyncTask() // Run Multiple Async Task
     {
-        FirstAsyncTask asyncTask = new FirstAsyncTask(); // First
-        asyncTask.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
-        asyncTask.executeOnExecutor(AsyncTask.SERIAL_EXECUTOR);
-        asyncTask.execute();
 
-        SecondAsyncTask asyncTask2 = new SecondAsyncTask(); // Second
-        asyncTask2.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
-        asyncTask2.executeOnExecutor(AsyncTask.SERIAL_EXECUTOR);
-        asyncTask2.execute();
+        for (int i = 0; i < 2; i++)
+        {
+            FirstAsyncTask asyncTask = new FirstAsyncTask(); // First
+            asyncTask.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
+        }
+
+//        asyncTask.executeOnExecutor(AsyncTask.SERIAL_EXECUTOR);
+//        asyncTask.execute();
+
+//        SecondAsyncTask asyncTask2 = new SecondAsyncTask(); // Second
+//        asyncTask2.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
+//        asyncTask2.executeOnExecutor(AsyncTask.SERIAL_EXECUTOR);
+//        asyncTask2.execute();
 
 
         /**
@@ -237,18 +242,18 @@ public class MainActivity extends AppCompatActivity {
         @Override
         protected Void doInBackground(Void... params)
         {
-            for(int index = 0; index < 5; index++)
-            {
+//            for(int index = 0; index < 5; index++)
+//            {
                 Log.i("AsyncTask" ,"FirstAsyncTask");
-                try
-                {
-                    sleep(100);
-                }
-                catch (InterruptedException exception)
-                {
-                    exception.printStackTrace();
-                }
-            }
+//                try
+//                {
+//                    sleep(100);
+//                }
+//                catch (InterruptedException exception)
+//                {
+//                    exception.printStackTrace();
+//                }
+//            }
             return null;
         }
         @Override
