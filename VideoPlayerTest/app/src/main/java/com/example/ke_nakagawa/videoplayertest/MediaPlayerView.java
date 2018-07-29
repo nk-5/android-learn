@@ -4,31 +4,55 @@ import android.content.Context;
 import android.content.res.AssetFileDescriptor;
 import android.graphics.SurfaceTexture;
 import android.media.MediaPlayer;
-import android.util.Log;
+import android.view.Surface;
 import android.view.TextureView;
 
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 
-public class MediaPlayerHolder implements PlayerAdapter {
+public class MediaPlayerView extends TextureView implements PlayerAdapter, TextureView.SurfaceTextureListener {
 
     public static final int PLAYBACK_POSITION_REFRESH_INTERVAL_MS = 1000;
 
     private final Context mContext;
     private MediaPlayer mMediaPlayer;
+    private State mState = State.IDLE;
     private int mResourceId;
     private PlaybackInfoListener mPlaybackInfoListener;
     private ScheduledExecutorService mExecutor;
     private Runnable mSeekbarPositionUpdateTask;
+    private Surface mSurface;
+    private MediaPlayer.OnPreparedListener onPreparedListener = new MediaPlayer.OnPreparedListener() {
+        @Override
+        public void onPrepared(MediaPlayer mp) {
+            mState = State.PREPARED;
+            mMediaPlayer.seekTo(Integer.MIN_VALUE);
+        }
+    };
 
-    public MediaPlayerHolder(Context mContext) {
+    private enum State {
+        IDLE,
+        INITIALIZED,
+        PREPARING,
+        PREPARED,
+        STARTED,
+        STOPPED,
+        PAUSED,
+        PLAYBACK_COMPLETED,
+        END,
+        ERROR
+    }
+    public MediaPlayerView(Context mContext) {
+        super(mContext);
         this.mContext = mContext;
+        setSurfaceTextureListener(this);
     }
 
     private void initializeMediaPlayer() {
         if (mMediaPlayer == null) {
             mMediaPlayer = new MediaPlayer();
+            mMediaPlayer.reset();
             mMediaPlayer.setOnCompletionListener(new MediaPlayer.OnCompletionListener() {
                 @Override
                 public void onCompletion(MediaPlayer mp) {
@@ -41,6 +65,7 @@ public class MediaPlayerHolder implements PlayerAdapter {
                 }
             });
             logToUI("mMediaPlayer = new MediaPlayer()");
+            mState = State.INITIALIZED;
         }
     }
 
@@ -48,11 +73,14 @@ public class MediaPlayerHolder implements PlayerAdapter {
         mPlaybackInfoListener = listener;
     }
 
+    public void setResourceId(int resourceId) {
+        mResourceId = resourceId;
+    }
+
     @Override
     public void loadMedia(int resourceId) {
-        mResourceId = resourceId;
         initializeMediaPlayer();
-        AssetFileDescriptor assetFileDescriptor = mContext.getResources().openRawResourceFd(mResourceId);
+        AssetFileDescriptor assetFileDescriptor = mContext.getResources().openRawResourceFd(resourceId);
 
         try {
             logToUI("load() {1. setDataSource}");
@@ -60,6 +88,11 @@ public class MediaPlayerHolder implements PlayerAdapter {
         } catch (Exception e) {
             logToUI(e.toString());
         }
+
+        mMediaPlayer.setSurface(mSurface);
+        mMediaPlayer.setOnPreparedListener(onPreparedListener);
+        mMediaPlayer.prepareAsync(); // -> onPreparedListener#onPrepared
+        mState = State.PREPARING;
 
         initializeProgressCallback();
         logToUI("initializeProgressCallback()");
@@ -99,7 +132,7 @@ public class MediaPlayerHolder implements PlayerAdapter {
         if (mMediaPlayer != null) {
             logToUI("playbackReset()");
             mMediaPlayer.reset();
-            loadMedia(mResourceId);
+//            loadMedia(mResourceId);
             if (mPlaybackInfoListener != null) {
                 mPlaybackInfoListener.onStateChanged(PlaybackInfoListener.State.RESET);
             }
@@ -181,5 +214,30 @@ public class MediaPlayerHolder implements PlayerAdapter {
         if (mPlaybackInfoListener != null) {
             mPlaybackInfoListener.onLogUpdated(messsage);
         }
+    }
+
+    @Override
+    public void onSurfaceTextureAvailable(SurfaceTexture surface, int width, int height) {
+        logToUI("onSurfaceTextureAvailable");
+        mSurface = new Surface(surface);
+        loadMedia(mResourceId);
+    }
+
+    @Override
+    public void onSurfaceTextureSizeChanged(SurfaceTexture surface, int width, int height) {
+        logToUI("onSurfaceTextureSizeChanged");
+    }
+
+    @Override
+    public boolean onSurfaceTextureDestroyed(SurfaceTexture surface) {
+        logToUI("onSurfaceTextureDestroyed");
+        release();
+        mSurface = null;
+        return true;
+    }
+
+    @Override
+    public void onSurfaceTextureUpdated(SurfaceTexture surface) {
+        logToUI("onSurfaceTextureUpdated");
     }
 }

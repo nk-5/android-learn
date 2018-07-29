@@ -238,6 +238,7 @@ public class MainActivity extends AppCompatActivity {
         protected void onPreExecute()
         {
             Log.i("AsyncTask" ,"FirstOnPreExecute()");
+            cancel(true);
         }
         @Override
         protected Void doInBackground(Void... params)
