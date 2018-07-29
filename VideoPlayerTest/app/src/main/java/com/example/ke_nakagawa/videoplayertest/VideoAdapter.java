@@ -1,5 +1,7 @@
 package com.example.ke_nakagawa.videoplayertest;
 
+import static android.view.View.INVISIBLE;
+import static android.view.View.VISIBLE;
 import static android.widget.RelativeLayout.CENTER_HORIZONTAL;
 import static android.widget.RelativeLayout.CENTER_VERTICAL;
 
@@ -15,6 +17,7 @@ import android.widget.TextView;
 public class VideoAdapter extends ArrayAdapter {
     RelativeLayout videoLayout;
     MediaPlayerView videoView;
+    Button play;
 
     public VideoAdapter(@NonNull Context context, int resource) {
         super(context, resource);
@@ -23,7 +26,13 @@ public class VideoAdapter extends ArrayAdapter {
 
         videoLayout = new RelativeLayout(context);
         videoLayout.setLayoutParams(videoViewLayoutParams);
-        videoView = new MediaPlayerView(context);
+        videoView = new MediaPlayerView(context, new MediaPlayerView.Listener() {
+            @Override
+            public void onSurfaceTextureDestroyed() {
+                play.setVisibility(VISIBLE);
+            }
+        });
+
         videoView.setLayoutParams(videoViewLayoutParams);
         // https://iabtechlab.com/wp-content/uploads/2016/07/VAST-4.0-Short-Intro.mp4
         videoView.setResourceId(R.raw.vast_intro);
@@ -32,14 +41,14 @@ public class VideoAdapter extends ArrayAdapter {
                 ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT);
         playLayoutParams.addRule(CENTER_HORIZONTAL);
         playLayoutParams.addRule(CENTER_VERTICAL);
-        final Button play = new Button(context);
+        play = new Button(context);
         play.setLayoutParams(playLayoutParams);
         play.setText("play!!");
         play.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 videoView.play();
-                play.setVisibility(View.INVISIBLE);
+                play.setVisibility(INVISIBLE);
             }
         });
 

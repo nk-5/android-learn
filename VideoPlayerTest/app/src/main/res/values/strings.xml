@@ -1,4 +1,5 @@
 <resources>
     <string name="app_name">VideoPlayerTest</string>
     <string name="title_activity_list_view">ListViewActivity</string>
+    <string name="title_activity_menu">MenuActivity</string>
 </resources>

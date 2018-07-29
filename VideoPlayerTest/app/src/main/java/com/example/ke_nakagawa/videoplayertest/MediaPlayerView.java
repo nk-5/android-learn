@@ -4,6 +4,7 @@ import android.content.Context;
 import android.content.res.AssetFileDescriptor;
 import android.graphics.SurfaceTexture;
 import android.media.MediaPlayer;
+import android.util.Log;
 import android.view.Surface;
 import android.view.TextureView;
 
@@ -12,6 +13,11 @@ import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 
 public class MediaPlayerView extends TextureView implements PlayerAdapter, TextureView.SurfaceTextureListener {
+    private final Listener mListener;
+
+    public interface Listener {
+        void onSurfaceTextureDestroyed();
+    }
 
     public static final int PLAYBACK_POSITION_REFRESH_INTERVAL_MS = 1000;
 
@@ -43,9 +49,10 @@ public class MediaPlayerView extends TextureView implements PlayerAdapter, Textu
         END,
         ERROR
     }
-    public MediaPlayerView(Context mContext) {
-        super(mContext);
-        this.mContext = mContext;
+    public MediaPlayerView(Context context, Listener listener) {
+        super(context);
+        mContext = context;
+        mListener = listener;
         setSurfaceTextureListener(this);
     }
 
@@ -219,6 +226,7 @@ public class MediaPlayerView extends TextureView implements PlayerAdapter, Textu
     @Override
     public void onSurfaceTextureAvailable(SurfaceTexture surface, int width, int height) {
         logToUI("onSurfaceTextureAvailable");
+        Log.v("MediaPlayerView", "onSurfaceTextureAvailable");
         mSurface = new Surface(surface);
         loadMedia(mResourceId);
     }
@@ -226,18 +234,23 @@ public class MediaPlayerView extends TextureView implements PlayerAdapter, Textu
     @Override
     public void onSurfaceTextureSizeChanged(SurfaceTexture surface, int width, int height) {
         logToUI("onSurfaceTextureSizeChanged");
+        Log.v("MediaPlayerView", "onSurfaceTextureSizeChanged");
     }
 
     @Override
     public boolean onSurfaceTextureDestroyed(SurfaceTexture surface) {
         logToUI("onSurfaceTextureDestroyed");
+        Log.v("MediaPlayerView", "onSurfaceTextureDestroyed");
+        reset();
         release();
         mSurface = null;
+        mListener.onSurfaceTextureDestroyed();
         return true;
     }
 
     @Override
     public void onSurfaceTextureUpdated(SurfaceTexture surface) {
         logToUI("onSurfaceTextureUpdated");
+        Log.v("MediaPlayerView", "onSurfaceTextureUpdated");
     }
 }
